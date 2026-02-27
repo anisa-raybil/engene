@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>THE SIN : VANISH — For ENGENE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Cormorant Garamond', 'serif'],
+            body: ['Space Grotesk', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    :root {
+      --bg: #050505;
+      --bg-secondary: #0d0d0d;
+      --fg: #f0f0f0;
+      --fg-muted: #888888;
+      --accent: #8B0000;
+      --accent-bright: #cc1111;
+      --accent-glow: #ff2222;
+      --card: rgba(15, 15, 15, 0.85);
+      --border: #1a1a1a;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      overflow-x: hidden;
+      padding-bottom: 100px; /* Space for player bar */
+    }
+    
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+    
+    #particle-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    /* Glitch Effect */
+    .glitch {
+      position: relative;
+      animation: glitch-skew 4s infinite linear alternate-reverse;
+    }
+    .glitch::before, .glitch::after {
+      content: attr(data-text);
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+    .glitch::before {
+      color: var(--accent-glow);
+      animation: glitch-effect 3s infinite linear alternate-reverse;
+      clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+      transform: translate(-2px, -2px);
+    }
+    .glitch::after {
+      color: #00ffff;
+      animation: glitch-effect 2s infinite linear alternate-reverse;
+      clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+      transform: translate(2px, 2px);
+    }
+    @keyframes glitch-effect {
+      0% { transform: translate(0); }
+      20% { transform: translate(-3px, 3px); }
+      40% { transform: translate(-3px, -3px); }
+      60% { transform: translate(3px, 3px); }
+      80% { transform: translate(3px, -3px); }
+      100% { transform: translate(0); }
+    }
+    @keyframes glitch-skew {
+      0% { transform: skew(0deg); }
+      21% { transform: skew(1deg); }
+      22% { transform: skew(0deg); }
+      100% { transform: skew(0deg); }
+    }
+    
+    /* Reveal Animation */
+    .reveal {
+      opacity: 0;
+      transform: translateY(60px);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.active { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    /* ... other delays ... */
+    
+    /* Intro Screen */
+    #intro-screen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--bg); z-index: 1000;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      transition: opacity 1s ease, visibility 1s ease;
+    }
+    #intro-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    
+    /* Track Item */
+    .track-item {
+      position: relative; padding: 1.25rem 2rem;
+      border: 1px solid var(--border); background: transparent;
+      transition: all 0.4s ease; cursor: pointer; overflow: hidden;
+    }
+    .track-item::before {
+      content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.3; transition: left 0.5s ease;
+    }
+    .track-item:hover::before { left: 100%; }
+    .track-item:hover { border-color: var(--accent); background: rgba(139, 0, 0, 0.15); box-shadow: 0 0 30px rgba(139, 0, 0, 0.3); }
+    .track-item:hover .track-number { color: var(--accent-glow); }
+    
+    /* Active Track Style */
+    .track-item.active { 
+      border-color: var(--accent-glow); 
+      background: rgba(139, 0, 0, 0.25);
+    }
+    .track-item.active .track-number { color: var(--accent-glow); }
+
+    /* Concept Photo Styling */
+    .concept-photo-wrapper {
+      position: relative;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      background: var(--bg-secondary);
+      transition: all 0.5s ease;
+    }
+    .concept-photo-wrapper img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: grayscale(60%) contrast(1.1) brightness(0.7);
+      transition: all 0.7s ease;
+    }
+    .concept-photo-wrapper:hover img {
+      filter: grayscale(0%) contrast(1.2) brightness(0.9);
+      transform: scale(1.05);
+    }
+    .concept-photo-wrapper::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, transparent 50%, rgba(139, 0, 0, 0.2) 100%);
+      pointer-events: none;
+    }
+    .concept-photo-wrapper:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 40px rgba(139, 0, 0, 0.2);
+    }
+    
+    /* Genre Tags */
+    .genre-tag {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      margin: 0.25rem;
+      border: 1px solid var(--border);
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      transition: all 0.3s ease;
+    }
+    .genre-tag:hover {
+      border-color: var(--accent);
+      background: rgba(139, 0, 0, 0.2);
+      color: var(--fg);
+    }
+
+    /* Member Card */
+    .member-card {
+      position: relative;
+      border: 1px solid var(--border);
+      padding: 0; overflow: hidden;
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      aspect-ratio: 3/4;
+      background: var(--bg-secondary);
+    }
+    .member-card img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: grayscale(80%) contrast(1.1) brightness(0.8);
+      transition: all 0.5s ease;
+    }
+    .member-card:hover img {
+      filter: grayscale(0%) contrast(1.2) brightness(1);
+      transform: scale(1.05);
+    }
+    .member-card::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%);
+      z-index: 1; pointer-events: none;
+    }
+    .member-info {
+      position: absolute; bottom: 0; left: 0; width: 100%; padding: 1.5rem;
+      z-index: 2; transform: translateY(20px); opacity: 0; transition: all 0.4s ease;
+    }
+    .member-card:hover .member-info { transform: translateY(0); opacity: 1; }
+    .member-card:hover { border-color: var(--accent); box-shadow: 0 20px 40px rgba(139, 0, 0, 0.4); z-index: 10; }
+
+    /* Modal & Others */
+    .quote-modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.95); z-index: 2000;
+      display: flex; justify-content: center; align-items: center;
+      opacity: 0; visibility: hidden; transition: all 0.5s ease;
+    }
+    .quote-modal.active { opacity: 1; visibility: visible; }
+    .quote-content {
+      max-width: 600px; padding: 3rem; text-align: center;
+      transform: scale(0.9); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .quote-modal.active .quote-content { transform: scale(1); }
+    
+    .countdown-digit {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3rem, 8vw, 6rem);
+      font-weight: 300;
+      color: var(--accent-glow);
+      text-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent);
+    }
+    
+    .btn-primary {
+      position: relative; padding: 1rem 3rem;
+      background: transparent;
+      border: 2px solid var(--accent);
+      color: var(--fg);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.875rem; letter-spacing: 0.2em; text-transform: uppercase;
+      cursor: pointer; overflow: hidden; transition: all 0.4s ease;
+    }
+    .btn-primary::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 0; height: 100%;
+      background: var(--accent); transition: width 0.4s ease; z-index: -1;
+    }
+    .btn-primary:hover::before { width: 100%; }
+    .btn-primary:hover { box-shadow: 0 0 30px var(--accent); }
+    
+    .noise-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 999; opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    /* MUSIC PLAYER BAR */
+    #player-bar {
+      position: fixed;
+      bottom: 0; left: 0;
+      width: 100%;
+      background: rgba(10, 10, 10, 0.95);
+      border-top: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 500;
+      backdrop-filter: blur(10px);
+      transform: translateY(100%);
+      transition: transform 0.4s ease;
+    }
+    #player-bar.active { transform: translateY(0); }
+    
+    .player-progress {
+      position: absolute;
+      top: 0; left: 0;
+      width: 0%;
+      height: 2px;
+      background: var(--accent-glow);
+      transition: width 0.1s linear;
+    }
+
+    .player-controls button {
+      background: transparent;
+      border: 1px solid var(--fg-muted);
+      color: var(--fg);
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .player-controls button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 15px rgba(139, 0, 0, 0.5);
+    }
+  </style>
+</head>
+<body>
+  
+  <div class="noise-overlay"></div>
+  <canvas id="particle-canvas"></canvas>
+  
+  <!-- Hidden Audio Element -->
+  <audio id="main-audio"></audio>
+
+  <!-- Intro Screen -->
+  <div id="intro-screen">
+    <div class="text-center px-8">
+      <h1 class="font-display text-5xl md:text-7xl lg:text-8xl font-light tracking-wider mb-4 glitch" data-text="THE SIN : VANISH">
+        THE SIN : VANISH
+      </h1>
+      <p class="font-body text-lg md:text-xl tracking-widest text-[--fg-muted] mb-12">
+        Dedicated to ENGENE
+      </p>
+      <button id="enter-btn" class="btn-primary" aria-label="Enter the website">
+        Enter The Era
+      </button>
+    </div>
+  </div>
+  
+  <!-- Music Toggle (Ambient) -->
+  <button id="music-toggle" class="fixed top-6 right-6 z-50 w-12 h-12 flex items-center justify-center bg-[--card] border border-[--border] hover:border-[--accent] transition-all duration-300 group" aria-label="Toggle ambient music">
+    <svg id="music-icon" class="w-5 h-5 text-[--fg-muted] group-hover:text-[--accent] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+    </svg>
+    <div id="music-bars" class="hidden absolute inset-0 flex items-center justify-center gap-1">
+      <span class="w-1 h-3 bg-[--accent] animate-pulse"></span>
+      <span class="w-1 h-5 bg-[--accent] animate-pulse" style="animation-delay: 0.1s;"></span>
+      <span class="w-1 h-2 bg-[--accent] animate-pulse" style="animation-delay: 0.2s;"></span>
+    </div>
+  </button>
+  
+  <!-- Main Content -->
+  <main id="main-content" class="relative z-10 opacity-0 transition-opacity duration-1000">
+    
+    <!-- Hero Section -->
+    <section class="min-h-screen flex flex-col justify-center items-center px-6 py-20 relative">
+      <div class="absolute inset-0 bg-gradient-to-b from-[--bg] via-transparent to-[--bg] pointer-events-none"></div>
+      
+      <div class="text-center relative z-10">
+        <p class="font-body text-sm tracking-[0.4em] text-[--fg-muted] mb-6 reveal">A FAN PROJECT</p>
+        <h1 class="font-display text-6xl md:text-8xl lg:text-9xl font-light tracking-wide mb-4 reveal reveal-delay-1">
+          THE SIN
+        </h1>
+        <h2 class="font-display text-4xl md:text-6xl lg:text-7xl font-light tracking-wide text-[--accent] mb-8 reveal reveal-delay-2">
+          VANISH
+        </h2>
+        <div class="flex items-center justify-center gap-4 reveal reveal-delay-3">
+          <span class="w-16 h-px bg-[--accent]"></span>
+          <span class="font-body text-sm tracking-widest text-[--fg-muted]">FOR ENGENE</span>
+          <span class="w-16 h-px bg-[--accent]"></span>
+        </div>
+      </div>
+      
+      <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 reveal reveal-delay-4">
+        <span class="font-body text-xs tracking-widest text-[--fg-muted]">SCROLL</span>
+        <div class="w-px h-12 bg-gradient-to-b from-[--accent] to-transparent"></div>
+      </div>
+    </section>
+    
+    <!-- Album Info Section -->
+    <section class="py-24 px-6 md:px-12 lg:px-24 relative">
+      <div class="max-w-6xl mx-auto">
+        <div class="grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
+          
+          <!-- Left: Text Info -->
+          <div class="reveal order-2 md:order-1">
+            <p class="font-body text-sm tracking-[0.3em] text-[--accent] mb-4">ALBUM INFORMATION</p>
+            <h3 class="font-display text-4xl md:text-5xl font-light mb-8">The Concept</h3>
+            
+            <div class="space-y-6">
+              <div class="border-l-2 border-[--accent] pl-6">
+                <p class="font-body text-sm text-[--fg-muted] mb-1">ARTIST</p>
+                <p class="font-display text-2xl">ENHYPEN</p>
+              </div>
+              
+              <div class="border-l-2 border-[--border] pl-6 hover:border-[--accent] transition-colors">
+                <p class="font-body text-sm text-[--fg-muted] mb-2">GENRE</p>
+                <div class="flex flex-wrap">
+                  <span class="genre-tag">Dance</span>
+                  <span class="genre-tag">Electronic</span>
+                  <span class="genre-tag">Trap</span>
+                  <span class="genre-tag">Synth</span>
+                  <span class="genre-tag">Latin</span>
+                  <span class="genre-tag">Alternative Dance Pop</span>
+                  <span class="genre-tag">Hip-hop</span>
+                  <span class="genre-tag">Pop</span>
+                  <span class="genre-tag">R&B</span>
+                  <span class="genre-tag">Alternative R&B</span>
+                </div>
+              </div>
+              
+              <div class="border-l-2 border-[--border] pl-6 hover:border-[--accent] transition-colors">
+                <p class="font-body text-sm text-[--fg-muted] mb-1">CONCEPT</p>
+                <p class="font-display text-xl">Dark Fantasy, Emotional Struggle</p>
+              </div>
+              
+              <div class="border-l-2 border-[--border] pl-6 hover:border-[--accent] transition-colors">
+                <p class="font-body text-sm text-[--fg-muted] mb-1">THEME</p>
+                <p class="font-display text-xl">Obsession, Sacrifice, Fading Identity</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Right: Main Concept Photo -->
+          <div class="reveal reveal-delay-2 order-1 md:order-2">
+            <div class="relative max-w-md mx-auto group">
+              <!-- Decorative Corners -->
+              <div class="absolute -top-3 -left-3 w-10 h-10 border-t-2 border-l-2 border-[--accent] z-10 transition-all duration-300 group-hover:top-0 group-hover:left-0"></div>
+              <div class="absolute -top-3 -right-3 w-10 h-10 border-t-2 border-r-2 border-[--accent] z-10 transition-all duration-300 group-hover:top-0 group-hover:right-0"></div>
+              <div class="absolute -bottom-3 -left-3 w-10 h-10 border-b-2 border-l-2 border-[--accent] z-10 transition-all duration-300 group-hover:bottom-0 group-hover:left-0"></div>
+              <div class="absolute -bottom-3 -right-3 w-10 h-10 border-b-2 border-r-2 border-[--accent] z-10 transition-all duration-300 group-hover:bottom-0 group-hover:right-0"></div>
+              
+              <!-- Photo Wrapper -->
+              <div class="concept-photo-wrapper aspect-square">
+                <img src="enha.jpeg" alt="The Sin Vanish Concept Photo" class="w-full h-full">
+              </div>
+              
+              <!-- Caption Overlay -->
+              <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black to-transparent z-20 pointer-events-none">
+                 <p class="font-display text-xl">THE SIN : VANISH</p>
+                 <p class="font-body text-xs text-[--fg-muted] tracking-widest mt-1">VOL. 7</p>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </section>
+    
+    <!-- Tracklist Section -->
+    <section class="py-24 px-6 md:px-12 lg:px-24 relative">
+      <div class="absolute inset-0 bg-gradient-to-b from-transparent via-[--bg-secondary] to-transparent opacity-50"></div>
+      
+      <div class="max-w-4xl mx-auto relative z-10">
+        <div class="text-center mb-16 reveal">
+          <p class="font-body text-sm tracking-[0.3em] text-[--accent] mb-4">TRACKLIST</p>
+          <h3 class="font-display text-4xl md:text-5xl font-light">Eleven Tracks</h3>
+          <p class="font-body text-xs text-[--fg-muted] mt-4">Click to play</p>
+        </div>
+        
+        <div class="space-y-4" id="tracklist">
+          <!-- Tracks rendered by JS -->
+        </div>
+      </div>
+    </section>
+    
+    <!-- Member Concept Photo Section -->
+    <section class="py-24 px-6 md:px-12 lg:px-24 relative">
+      <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-16 reveal">
+          <p class="font-body text-sm tracking-[0.3em] text-[--accent] mb-4">CONCEPT PHOTOS</p>
+          <h3 class="font-display text-4xl md:text-5xl font-light">The Seven</h3>
+          <p class="font-body text-sm text-[--fg-muted] mt-4">Click to reveal their message</p>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 lg:gap-3" id="member-grid">
+          <!-- Members rendered by JS -->
+        </div>
+      </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="py-16 px-6 border-t border-[--border]">
+      <div class="max-w-4xl mx-auto text-center">
+        <p class="font-display text-2xl mb-4">THE SIN : VANISH</p>
+        <p class="font-body text-sm text-[--fg-muted] mb-8">A fan project dedicated to ENHYPEN and ENGENE</p>
+        <p class="font-body text-xs text-[--fg-muted]">This is a fan-made project. Not affiliated with BELIFT LAB or ENHYPEN.</p>
+      </div>
+    </footer>
+    
+  </main>
+
+  <!-- MUSIC PLAYER BAR -->
+  <div id="player-bar">
+    <div class="player-progress" id="progress-bar"></div>
+    
+    <div class="flex items-center gap-4">
+        <div id="player-thumbnail" class="w-12 h-12 bg-[--bg-secondary] border border-[--border] flex items-center justify-center">
+             <svg class="w-5 h-5 text-[--fg-muted]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </div>
+        <div>
+            <p class="font-display text-sm" id="player-title">No Track Playing</p>
+            <p class="font-body text-xs text-[--fg-muted]" id="player-artist">ENHYPEN</p>
+        </div>
+    </div>
+
+    <div class="player-controls flex items-center gap-4">
+        <button id="prev-btn" aria-label="Previous">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+        </button>
+        <button id="play-pause-btn" aria-label="Play/Pause">
+            <svg id="play-icon" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="pause-icon" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+        <button id="next-btn" aria-label="Next">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+        </button>
+    </div>
+
+    <div class="hidden md:block w-24"></div> <!-- Spacer -->
+  </div>
+  
+  <!-- Quote Modal -->
+  <div class="quote-modal" id="quote-modal">
+    <div class="quote-content">
+      <p class="font-body text-sm tracking-[0.3em] text-[--accent] mb-4" id="modal-member-name"></p>
+      <p class="font-display text-2xl md:text-3xl font-light italic leading-relaxed" id="modal-quote"></p>
+      <button id="close-modal" class="btn-primary mt-8" aria-label="Close modal">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // ============ DATA ============
+    // PENTING: Ganti 'src' dengan path file MP3 kamu yang sebenarnya
+    // Misal: "songs/01_the_beginning.mp3"
+    const tracks = [
+      { number: 'I', title: 'The Beginning', subtitle: '사건의 발단', duration: '2:13', src: 'song/01.mp3' },
+      { number: 'II', title: 'No Way Back', subtitle: 'feat. So!YoON!', duration: '3:05', src: 'song/02.mp3' },
+      { number: 'III', title: 'The Fugitives', subtitle: '도망자들', duration: '1:35', src: 'song/03.mp3' },
+      { number: 'IV', title: 'Knife', duration: '2:19', src: 'song/04.mp3' },
+      { number: 'V', title: 'Stealer', duration: '2:56', src: 'song/05.mp3' },
+      { number: 'VI', title: 'The Voice', subtitle: '우리가 찾던 목소리', duration: '1:12', src: 'song/06.mp3' },
+      { number: 'VII', title: 'Witnesses', subtitle: '목격자', duration: '1:05', src: 'song/07.mp3' },
+      { number: 'VIII', title: 'Big Girls Don\'t Cry', duration: '1:58', src: 'song/08.mp3' },
+      { number: 'IX', title: 'Lost Island', duration: '2:45', src: 'song/09.mp3' },
+      { number: 'X', title: 'Sleep Tight', duration: '2:37', src: 'song/10.mp3' },
+      { number: 'XI', title: 'The Beyond', subtitle: '사건의 너머', duration: '1:58', src: 'song/11.mp3' }
+    ];
+    
+    const members = [
+      { name: 'JUNGWON', quote: 'In the darkness, I found my light. That light is you.', img: 'uwon.jpeg' },
+      { name: 'HEESEUNG', quote: 'Every sin has its price. But loving you was never a sin.', img: 'hisenk.jpeg' },
+      { name: 'JAY', quote: 'Even if I vanish from this world, my heart remains with you.', img: 'jay.jpeg' },
+      { name: 'JAKE', quote: 'Through the shadows we walk, together we survive.', img: 'jake.jpeg' },
+      { name: 'SUNGHOON', quote: 'The coldest ice can burn. The deepest love can hurt.', img: 'hoon.jpeg' },
+      { name: 'SUNOO', quote: 'In a world of chaos, you are my constant.', img: 'nunu.jpeg' },
+      { name: 'NI-KI', quote: 'I would trade eternity for one moment with you.', img: 'riki.jpeg' }
+    ];
+    
+    // ============ DOM ELEMENTS ============
+    const introScreen = document.getElementById('intro-screen');
+    const enterBtn = document.getElementById('enter-btn');
+    const mainContent = document.getElementById('main-content');
+    const tracklistContainer = document.getElementById('tracklist');
+    const memberGrid = document.getElementById('member-grid');
+    const quoteModal = document.getElementById('quote-modal');
+    const modalMemberName = document.getElementById('modal-member-name');
+    const modalQuote = document.getElementById('modal-quote');
+    const closeModalBtn = document.getElementById('close-modal');
+    const musicToggle = document.getElementById('music-toggle');
+    const musicIcon = document.getElementById('music-icon');
+    const musicBars = document.getElementById('music-bars');
+    
+    // Player Elements
+    const mainAudio = document.getElementById('main-audio');
+    const playerBar = document.getElementById('player-bar');
+    const progressBar = document.getElementById('progress-bar');
+    const playerTitle = document.getElementById('player-title');
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const playIcon = document.getElementById('play-icon');
+    const pauseIcon = document.getElementById('pause-icon');
+
+    let currentTrackIndex = -1;
+    
+    // ============ PARTICLE SYSTEM ============
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let mouseX = 0; let mouseY = 0;
+    
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    
+    class Particle {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.5; this.speedY = (Math.random() - 0.5) * 0.5;
+        this.opacity = Math.random() * 0.5 + 0.1;
+      }
+      update() {
+        this.x += this.speedX; this.y += this.speedY;
+        const dx = mouseX - this.x; const dy = mouseY - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 150) { this.x += dx * 0.001; this.y += dy * 0.001; }
+        if (this.x < 0) this.x = canvas.width; if (this.x > canvas.width) this.x = 0;
+        if (this.y < 0) this.y = canvas.height; if (this.y > canvas.height) this.y = 0;
+      }
+      draw() {
+        const r = Math.floor(139 + (this.size * 20));
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, Math.max(0.1, this.size), 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${Math.min(255, r)}, 0, 0, ${this.opacity})`;
+        ctx.fill();
+      }
+    }
+    
+    function initParticles() {
+      particles = [];
+      const count = Math.min(100, Math.floor((canvas.width * canvas.height) / 15000));
+      for (let i = 0; i < count; i++) particles.push(new Particle());
+    }
+    
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      particles.forEach((p1, i) => {
+        particles.slice(i + 1).forEach(p2 => {
+          const dx = p1.x - p2.x; const dy = p1.y - p2.y; const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < 80) {
+            ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = `rgba(139, 0, 0, ${0.1 * (1 - dist / 80)})`; ctx.lineWidth = 0.5; ctx.stroke();
+          }
+        });
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    
+    // ============ RENDER FUNCTIONS ============
+    function renderTracks() {
+      tracklistContainer.innerHTML = tracks.map((t, i) => `
+        <div class="track-item reveal reveal-delay-${(i % 7) + 1}" data-index="${i}">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-6">
+              <span class="track-number font-display text-2xl text-[--fg-muted]">${t.number}</span>
+              <div class="flex flex-col md:flex-row md:items-center md:gap-2">
+                <span class="font-body text-lg">${t.title}</span>
+                ${t.subtitle ? `<span class="font-body text-sm text-[--fg-muted]">${t.subtitle}</span>` : ''}
+              </div>
+            </div>
+            <span class="font-body text-sm text-[--fg-muted]">${t.duration}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    function renderMembers() {
+      memberGrid.innerHTML = members.map((m, i) => `
+        <div class="member-card reveal reveal-delay-${i + 1}" data-member="${i}" tabindex="0" role="button" aria-label="View ${m.name}'s quote">
+          <img src="${m.img}" alt="${m.name} Concept Photo" loading="lazy">
+          <div class="member-info">
+            <p class="font-body text-xs tracking-widest text-[--fg-muted]">THE SIN</p>
+            <p class="font-display text-lg mt-1">${m.name}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // ============ MUSIC PLAYER LOGIC ============
+    function loadTrack(index) {
+        if (index < 0 || index >= tracks.length) return;
+        
+        currentTrackIndex = index;
+        const track = tracks[index];
+        
+        mainAudio.src = track.src;
+        playerTitle.textContent = track.title;
+        playerBar.classList.add('active');
+        
+        // Highlight active track
+        document.querySelectorAll('.track-item').forEach((item, i) => {
+            if (i === index) item.classList.add('active');
+            else item.classList.remove('active');
+        });
+    }
+    
+    function playTrack() {
+        if (currentTrackIndex === -1) loadTrack(0);
+        mainAudio.play();
+        playIcon.classList.add('hidden');
+        pauseIcon.classList.remove('hidden');
+    }
+    
+    function pauseTrack() {
+        mainAudio.pause();
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+    }
+    
+    function playNext() {
+        if (currentTrackIndex < tracks.length - 1) loadTrack(currentTrackIndex + 1);
+        else loadTrack(0); // Loop back to start
+        playTrack();
+    }
+
+    function playPrev() {
+        if (currentTrackIndex > 0) loadTrack(currentTrackIndex - 1);
+        else loadTrack(tracks.length - 1); // Loop to end
+        playTrack();
+    }
+
+    // Update progress bar
+    mainAudio.addEventListener('timeupdate', (e) => {
+        const width = (e.target.currentTime / e.target.duration) * 100;
+        progressBar.style.width = `${width}%`;
+    });
+
+    // Auto next track
+    mainAudio.addEventListener('ended', playNext);
+    
+    // ============ SCROLL REVEAL ============
+    function initScrollReveal() {
+      const obs = new IntersectionObserver((es) => {
+        es.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
+      }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+      document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+    }
+    
+    // ============ AUDIO AMBIENT (Background) ============
+    let audioCtx = null; let isPlayingAmbient = false; let oscs = [];
+    function createAmbient() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const o1 = audioCtx.createOscillator(); const o2 = audioCtx.createOscillator();
+      const g = audioCtx.createGain(); const f = audioCtx.createBiquadFilter();
+      o1.type = 'sine'; o1.frequency.setValueAtTime(55, audioCtx.currentTime);
+      o2.type = 'sine'; o2.frequency.setValueAtTime(82.5, audioCtx.currentTime);
+      f.type = 'lowpass'; f.frequency.setValueAtTime(200, audioCtx.currentTime);
+      g.gain.setValueAtTime(0, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 2);
+      o1.connect(f); o2.connect(f); f.connect(g); g.connect(audioCtx.destination);
+      o1.start(); o2.start();
+      oscs = [o1, o2];
+    }
+    function toggleAudioAmbient() {
+      if (isPlayingAmbient) { oscs.forEach(o => { try { o.stop(); } catch(e) {} }); oscs = []; isPlayingAmbient = false; musicIcon.classList.remove('hidden'); musicBars.classList.add('hidden'); }
+      else { createAmbient(); isPlayingAmbient = true; musicIcon.classList.add('hidden'); musicBars.classList.remove('hidden'); }
+    }
+    
+    // ============ EVENTS ============
+    enterBtn.addEventListener('click', () => {
+      introScreen.classList.add('hidden'); mainContent.style.opacity = '1';
+      setTimeout(() => { document.querySelectorAll('.reveal').forEach(el => { if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('active'); }); }, 300);
+    });
+    musicToggle.addEventListener('click', toggleAudioAmbient);
+    
+    // Member interaction
+    memberGrid.addEventListener('click', (e) => {
+      const card = e.target.closest('.member-card');
+      if (card) { const m = members[card.dataset.member]; modalMemberName.textContent = m.name; modalQuote.textContent = m.quote; quoteModal.classList.add('active'); }
+    });
+    
+    // Tracklist Interaction
+    tracklistContainer.addEventListener('click', (e) => {
+        const item = e.target.closest('.track-item');
+        if(item) {
+            const index = parseInt(item.dataset.index);
+            if (index === currentTrackIndex && !mainAudio.paused) {
+                pauseTrack();
+            } else {
+                loadTrack(index);
+                playTrack();
+            }
+        }
+    });
+
+    // Player Controls
+    playPauseBtn.addEventListener('click', () => {
+        if (mainAudio.paused) playTrack();
+        else pauseTrack();
+    });
+    nextBtn.addEventListener('click', playNext);
+    prevBtn.addEventListener('click', playPrev);
+
+    closeModalBtn.addEventListener('click', () => quoteModal.classList.remove('active'));
+    quoteModal.addEventListener('click', (e) => { if (e.target === quoteModal) quoteModal.classList.remove('active'); });
+    document.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+    window.addEventListener('resize', () => { resizeCanvas(); initParticles(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && quoteModal.classList.contains('active')) quoteModal.classList.remove('active'); });
+    
+    // ============ INIT ============
+    function init() {
+      resizeCanvas(); initParticles(); animateParticles();
+      renderTracks(); renderMembers();
+      updateCountdown(); setInterval(updateCountdown, 1000);
+      setTimeout(initScrollReveal, 100);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+  </script>
+</body>
+</html>
