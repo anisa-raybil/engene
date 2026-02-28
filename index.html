@@ -43,7 +43,7 @@
       background: var(--bg);
       color: var(--fg);
       overflow-x: hidden;
-      padding-bottom: 100px; /* Space for player bar */
+      padding-bottom: 100px;
     }
     
     ::-webkit-scrollbar { width: 6px; }
@@ -51,11 +51,8 @@
     ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
     
     #particle-canvas {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: 1;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 1;
     }
     
     /* Glitch Effect */
@@ -65,8 +62,7 @@
     }
     .glitch::before, .glitch::after {
       content: attr(data-text);
-      position: absolute; top: 0; left: 0;
-      width: 100%; height: 100%;
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     }
     .glitch::before {
       color: var(--accent-glow);
@@ -104,7 +100,15 @@
     .reveal.active { opacity: 1; transform: translateY(0); }
     .reveal-delay-1 { transition-delay: 0.1s; }
     .reveal-delay-2 { transition-delay: 0.2s; }
-    /* ... other delays ... */
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+    .reveal-delay-6 { transition-delay: 0.6s; }
+    .reveal-delay-7 { transition-delay: 0.7s; }
+    .reveal-delay-8 { transition-delay: 0.8s; }
+    .reveal-delay-9 { transition-delay: 0.9s; }
+    .reveal-delay-10 { transition-delay: 1.0s; }
+    .reveal-delay-11 { transition-delay: 1.1s; }
     
     /* Intro Screen */
     #intro-screen {
@@ -131,7 +135,6 @@
     .track-item:hover { border-color: var(--accent); background: rgba(139, 0, 0, 0.15); box-shadow: 0 0 30px rgba(139, 0, 0, 0.3); }
     .track-item:hover .track-number { color: var(--accent-glow); }
     
-    /* Active Track Style */
     .track-item.active { 
       border-color: var(--accent-glow); 
       background: rgba(139, 0, 0, 0.25);
@@ -261,15 +264,11 @@
 
     /* MUSIC PLAYER BAR */
     #player-bar {
-      position: fixed;
-      bottom: 0; left: 0;
-      width: 100%;
+      position: fixed; bottom: 0; left: 0; width: 100%;
       background: rgba(10, 10, 10, 0.95);
       border-top: 1px solid var(--border);
       padding: 12px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
       z-index: 500;
       backdrop-filter: blur(10px);
       transform: translateY(100%);
@@ -278,10 +277,7 @@
     #player-bar.active { transform: translateY(0); }
     
     .player-progress {
-      position: absolute;
-      top: 0; left: 0;
-      width: 0%;
-      height: 2px;
+      position: absolute; top: 0; left: 0; width: 0%; height: 2px;
       background: var(--accent-glow);
       transition: width 0.1s linear;
     }
@@ -294,9 +290,7 @@
       border-radius: 50%;
       cursor: pointer;
       transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
     }
     .player-controls button:hover {
       border-color: var(--accent);
@@ -310,7 +304,6 @@
   <div class="noise-overlay"></div>
   <canvas id="particle-canvas"></canvas>
   
-  <!-- Hidden Audio Element -->
   <audio id="main-audio"></audio>
 
   <!-- Intro Screen -->
@@ -415,18 +408,15 @@
           <!-- Right: Main Concept Photo -->
           <div class="reveal reveal-delay-2 order-1 md:order-2">
             <div class="relative max-w-md mx-auto group">
-              <!-- Decorative Corners -->
               <div class="absolute -top-3 -left-3 w-10 h-10 border-t-2 border-l-2 border-[--accent] z-10 transition-all duration-300 group-hover:top-0 group-hover:left-0"></div>
               <div class="absolute -top-3 -right-3 w-10 h-10 border-t-2 border-r-2 border-[--accent] z-10 transition-all duration-300 group-hover:top-0 group-hover:right-0"></div>
               <div class="absolute -bottom-3 -left-3 w-10 h-10 border-b-2 border-l-2 border-[--accent] z-10 transition-all duration-300 group-hover:bottom-0 group-hover:left-0"></div>
               <div class="absolute -bottom-3 -right-3 w-10 h-10 border-b-2 border-r-2 border-[--accent] z-10 transition-all duration-300 group-hover:bottom-0 group-hover:right-0"></div>
               
-              <!-- Photo Wrapper -->
               <div class="concept-photo-wrapper aspect-square">
                 <img src="enha.jpeg" alt="The Sin Vanish Concept Photo" class="w-full h-full">
               </div>
               
-              <!-- Caption Overlay -->
               <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black to-transparent z-20 pointer-events-none">
                  <p class="font-display text-xl">THE SIN : VANISH</p>
                  <p class="font-body text-xs text-[--fg-muted] tracking-widest mt-1">VOL. 7</p>
@@ -449,9 +439,7 @@
           <p class="font-body text-xs text-[--fg-muted] mt-4">Click to play</p>
         </div>
         
-        <div class="space-y-4" id="tracklist">
-          <!-- Tracks rendered by JS -->
-        </div>
+        <div class="space-y-4" id="tracklist"></div>
       </div>
     </section>
     
@@ -464,9 +452,7 @@
           <p class="font-body text-sm text-[--fg-muted] mt-4">Click to reveal their message</p>
         </div>
         
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 lg:gap-3" id="member-grid">
-          <!-- Members rendered by JS -->
-        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 lg:gap-3" id="member-grid"></div>
       </div>
     </section>
     
@@ -507,8 +493,7 @@
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
         </button>
     </div>
-
-    <div class="hidden md:block w-24"></div> <!-- Spacer -->
+    <div class="hidden md:block w-24"></div>
   </div>
   
   <!-- Quote Modal -->
@@ -522,8 +507,6 @@
 
   <script>
     // ============ DATA ============
-    // PENTING: Ganti 'src' dengan path file MP3 kamu yang sebenarnya
-    // Misal: "songs/01_the_beginning.mp3"
     const tracks = [
       { number: 'I', title: 'The Beginning', subtitle: '사건의 발단', duration: '2:13', src: 'song/01.mp3' },
       { number: 'II', title: 'No Way Back', subtitle: 'feat. So!YoON!', duration: '3:05', src: 'song/02.mp3' },
@@ -572,7 +555,6 @@
     const nextBtn = document.getElementById('next-btn');
     const playIcon = document.getElementById('play-icon');
     const pauseIcon = document.getElementById('pause-icon');
-
     let currentTrackIndex = -1;
     
     // ============ PARTICLE SYSTEM ============
@@ -662,53 +644,43 @@
     // ============ MUSIC PLAYER LOGIC ============
     function loadTrack(index) {
         if (index < 0 || index >= tracks.length) return;
-        
         currentTrackIndex = index;
         const track = tracks[index];
-        
         mainAudio.src = track.src;
         playerTitle.textContent = track.title;
         playerBar.classList.add('active');
-        
-        // Highlight active track
         document.querySelectorAll('.track-item').forEach((item, i) => {
             if (i === index) item.classList.add('active');
             else item.classList.remove('active');
         });
     }
-    
     function playTrack() {
         if (currentTrackIndex === -1) loadTrack(0);
         mainAudio.play();
         playIcon.classList.add('hidden');
         pauseIcon.classList.remove('hidden');
     }
-    
     function pauseTrack() {
         mainAudio.pause();
         playIcon.classList.remove('hidden');
         pauseIcon.classList.add('hidden');
     }
-    
     function playNext() {
         if (currentTrackIndex < tracks.length - 1) loadTrack(currentTrackIndex + 1);
-        else loadTrack(0); // Loop back to start
+        else loadTrack(0);
         playTrack();
     }
-
     function playPrev() {
         if (currentTrackIndex > 0) loadTrack(currentTrackIndex - 1);
-        else loadTrack(tracks.length - 1); // Loop to end
+        else loadTrack(tracks.length - 1);
         playTrack();
     }
-
-    // Update progress bar
     mainAudio.addEventListener('timeupdate', (e) => {
-        const width = (e.target.currentTime / e.target.duration) * 100;
-        progressBar.style.width = `${width}%`;
+        if(e.target.duration) {
+            const width = (e.target.currentTime / e.target.duration) * 100;
+            progressBar.style.width = `${width}%`;
+        }
     });
-
-    // Auto next track
     mainAudio.addEventListener('ended', playNext);
     
     // ============ SCROLL REVEAL ============
@@ -746,31 +718,21 @@
     });
     musicToggle.addEventListener('click', toggleAudioAmbient);
     
-    // Member interaction
     memberGrid.addEventListener('click', (e) => {
       const card = e.target.closest('.member-card');
       if (card) { const m = members[card.dataset.member]; modalMemberName.textContent = m.name; modalQuote.textContent = m.quote; quoteModal.classList.add('active'); }
     });
     
-    // Tracklist Interaction
     tracklistContainer.addEventListener('click', (e) => {
         const item = e.target.closest('.track-item');
         if(item) {
             const index = parseInt(item.dataset.index);
-            if (index === currentTrackIndex && !mainAudio.paused) {
-                pauseTrack();
-            } else {
-                loadTrack(index);
-                playTrack();
-            }
+            if (index === currentTrackIndex && !mainAudio.paused) pauseTrack();
+            else { loadTrack(index); playTrack(); }
         }
     });
 
-    // Player Controls
-    playPauseBtn.addEventListener('click', () => {
-        if (mainAudio.paused) playTrack();
-        else pauseTrack();
-    });
+    playPauseBtn.addEventListener('click', () => { if (mainAudio.paused) playTrack(); else pauseTrack(); });
     nextBtn.addEventListener('click', playNext);
     prevBtn.addEventListener('click', playPrev);
 
